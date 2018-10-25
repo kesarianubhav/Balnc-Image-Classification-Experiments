@@ -18,7 +18,7 @@ class Classifier(object):
         self.classifier.add(
             Dense(output_dim=output_dimension), activation='sigmoid')
         self.classifier.compile(
-            optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+            optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
     def train_model(self, input_tensors, output_tensors):
         print("Training started\n")
