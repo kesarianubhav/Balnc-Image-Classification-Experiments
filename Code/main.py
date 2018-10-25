@@ -61,6 +61,6 @@ def input_maker(input_folder, target_size, output_classes):
 
 if __name__ == '__main__':
     c1 = Classifier()
-    X_train, Y_train, X_test, Y_test = input_maker('Sport', (64, 64), 4)
-    c1.create_architecture(input_shape=(64, 64, 3), output_dimension=4)
+    X_train, Y_train, X_test, Y_test = input_maker('Sport', (224, 224), 4)
+    c1.create_architecture(input_shape=(224, 224, 3), output_dimension=4)
     c1.train_model(X_train, Y_train)

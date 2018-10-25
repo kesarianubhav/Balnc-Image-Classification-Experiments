@@ -2,27 +2,30 @@ from keras.models import Sequential
 from keras.layers import MaxPooling2D, Conv2D, Dense, Flatten
 import numpy as np
 import pandas as pd
+from time import time
 
 
 class Classifier(object):
 
-    def __init__(self, n_epochs=10, n_classes=4):
+    def __init__(self, batch_size=256, n_epochs=10, n_classes=4):
         self.n_classes = n_classes
         self.n_epochs = n_epochs
         self._trained = False
+        self.batch_size = batch_size
 
-    def create_architecture(self, input_shape, output_dimension):
+    def create_architecture(self, input_shape, output_dimension, model='None'):
         self.input_shape = input_shape
         self.output_dimension = output_dimension
-        self.classifier = Sequential()
-        self.classifier.add(Conv2D(
-            32, 3, 3, input_shape=(input_shape), activation='relu'))
-        self.classifier.add(MaxPooling2D(pool_size=(2, 2)))
-        self.classifier.add(Flatten())
-        self.classifier.add(
-            Dense(output_dim=output_dimension, activation='sigmoid'))
-        self.classifier.compile(
-            optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+        if model == 'None':
+            self.classifier = Sequential()
+            self.classifier.add(Conv2D(
+                32, 3, 3, input_shape=(input_shape), activation='relu'))
+            self.classifier.add(MaxPooling2D(pool_size=(2, 2)))
+            self.classifier.add(Flatten())
+            self.classifier.add(
+                Dense(output_dim=output_dimension, activation='sigmoid'))
+            self.classifier.compile(
+                optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
     def train_model(self, input_tensors, output_tensors):
         print("Training started\n")
