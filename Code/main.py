@@ -10,11 +10,13 @@ from sklearn.metrics import accuracy_score, f1_score
 
 from utils import getFilesInDir, create_labels
 # from rnn_backend import RnnClassifier, preprocess_input_rnn
-from architecture import CLassifier
+from architecture import Classifier
 from utils import one_hot_to_integer
 from utils import one_hot
 from utils import missclassification_rate
 from utils import test_train_split
+
+fraction = 100
 
 
 def img_to_tensor(image_path, target_size):
@@ -28,7 +30,7 @@ def img_to_tensor(image_path, target_size):
     return tensor
 
 
-def input_maker(input_folder, target_size):
+def input_maker(input_folder, target_size, output_classes):
     images = getFilesInDir(input_folder)
     # images = getFilesInDir(folder)
     images_train, images_test = test_train_split(images, fraction)
@@ -43,9 +45,22 @@ def input_maker(input_folder, target_size):
             tensors_test.append(img_to_tensor(k, target_size=(target_size)))
             print("Test Tensor :" + str(k) + " Created..\n")
 
+    print("Total Training Tensors:" + str(len(tensors_train)) +
+          " each of shape " + str(tensors_train[0].shape))
+    print("Total Testing Tensors:" + str(len(tensors_train)) +
+          " each of shape " + str((tensors_test[0].shape)))
+
+    labels_train = create_labels(images_train, output_classes=output_classes)
+    labels_test = create_labels(images_test, output_classes=output_classes)
+
+    print("Total Training Lables created:" + str(len(labels_train)))
+    print("Total Testing Lables created:" + str(len(labels_test)))
+
+    return (tensors_train, labels_train, tensors_test, labels_test)
+
 
 if __name__ == '__main__':
     c1 = Classifier()
-    input_maker('Sport', (224, 224))
-    # c1.train_model()
-    # c1.predict_model()
+    X_train, Y_train, X_test, Y_test = input_maker('Sport', (64, 64), 4)
+    c1.create_architecture(input_shape=(64, 64, 3), output_dimension=4)
+    c1.train_model(X_train, Y_train)
