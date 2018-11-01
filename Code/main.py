@@ -16,6 +16,9 @@ from utils import one_hot
 from utils import missclassification_rate
 from utils import test_train_split
 
+# For Matching Images
+import imagehash as ihash
+
 fraction = 100
 
 
@@ -59,8 +62,31 @@ def input_maker(input_folder, target_size, output_classes):
     return (tensors_train, labels_train, tensors_test, labels_test)
 
 
+def get_best_matches(input, class_label, num_of_matches=3, folder='Sport', target_size=(224, 224)):
+    # tensors = []
+    indexes = []
+    hashes = []
+    matches = []
+    input_hash = ihash.perceptual_hash(input)
+    file_map = getFilesInDir(folder)[class_label]
+    for i in file_map:
+        tensor = (img_to_tensor(i, target_size=(target_size)))
+        hashes.append(ihash.perceptual_hash(tensor) - input_hash)
+    # for i in file_map:
+    indexes = [i for i in range(1, len(hashes) + 1)]
+    s = sorted(zip(hashes, indexes))
+    results = [file_map[i]
+               for i in range(len(hashes) - 1, len(hashes) - num_of_matches, -1)]
+    return results
+
+
 if __name__ == '__main__':
     c1 = Classifier()
     X_train, Y_train, X_test, Y_test = input_maker('Sport', (224, 224), 4)
     c1.create_architecture(input_shape=(224, 224, 3), output_dimension=4)
     c1.train_model(X_train, Y_train)
+
+    predicted_labels = c1.predict(X_test)
+    for i, j in zip(X_test, predicted_labels):
+        result = get_best_match(image=i, class_label=j, num_of_matches=3)
+        print('Best Image Matches from the same class:' + str(result))
