@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import keras.backend as K
-
+import keras
 # from keras.models import K
 from keras.preprocessing import image
 from keras.preprocessing.image import load_img, img_to_array
@@ -35,6 +35,7 @@ def img_to_tensor(image_path, target_size):
 
 def input_maker(input_folder, target_size, output_classes):
     images = getFilesInDir(input_folder)
+    print("File Map : {}".format(images.keys()))
     # images = getFilesInDir(folder)
     images_train, images_test = test_train_split(images, fraction)
     tensors_train = []
@@ -52,7 +53,8 @@ def input_maker(input_folder, target_size, output_classes):
           " each of shape " + str(tensors_train[0].shape))
     print("Total Testing Tensors:" + str(len(tensors_train)) +
           " each of shape " + str((tensors_test[0].shape)))
-
+    index = 0
+#     for i,j in labels_train:
     labels_train = create_labels(images_train, output_classes=output_classes)
     labels_test = create_labels(images_test, output_classes=output_classes)
 
@@ -67,11 +69,11 @@ def get_best_matches(input, class_label, num_of_matches=3, folder='Sport', targe
     indexes = []
     hashes = []
     matches = []
-    input_hash = ihash.perceptual_hash(input)
+    input_hash = ihash.average_hash(input)
     file_map = getFilesInDir(folder)[class_label]
     for i in file_map:
         tensor = (img_to_tensor(i, target_size=(target_size)))
-        hashes.append(ihash.perceptual_hash(tensor) - input_hash)
+        hashes.append(ihash.average_hash(tensor) - input_hash)
     # for i in file_map:
     indexes = [i for i in range(1, len(hashes) + 1)]
     s = sorted(zip(hashes, indexes))
@@ -80,13 +82,38 @@ def get_best_matches(input, class_label, num_of_matches=3, folder='Sport', targe
     return results
 
 
+def normalizer(image):
+    image = (image - np.mean(image)) / 255
+    return image
+
+
 if __name__ == '__main__':
     c1 = Classifier()
-    X_train, Y_train, X_test, Y_test = input_maker('Sport', (224, 224), 4)
+    X_train, Y_train, X_test, Y_test = input_maker(
+        'Sport', (224, 224), 4)
+
+    print(X_train[:4])
+#     print((Y_train[:200]))
+    ls = [one_hot_to_integer(i) for i in Y_train]
+    print(set(ls))
+#     sys.exit(0)
+
+    X_train = normalizer(X_train)
+    X_test = normalizer(X_test)
+
+    from sklearn.utils import shuffle
+    X_train, Y_train = shuffle(X_train, Y_train, random_state=0)
+    X_test, Y_test = shuffle(X_test, Y_test, random_state=0)
+
     c1.create_architecture(input_shape=(224, 224, 3), output_dimension=4)
     c1.train_model(X_train, Y_train)
 
     predicted_labels = c1.predict(X_test)
-    for i, j in zip(X_test, predicted_labels):
-        result = get_best_match(image=i, class_label=j, num_of_matches=3)
-        print('Best Image Matches from the same class:' + str(result))
+    predicted = [i[0] for i in predicted_labels]
+    print(predicted)
+    actual = [one_hot_to_integer(i) for i in Y_test]
+    print(actual)
+    print("Missclassification Rate: {}".format(
+        missclassification_rate(predicted, actual)))
+
+    # image_name = input('enter Image : to get best similar Image')

@@ -4,6 +4,7 @@ from os.path import join
 from os.path import isfile
 import numpy as np
 import pandas as pd
+import keras
 
 
 def missclassification_rate(pred, truth):
@@ -47,6 +48,8 @@ def getFilesInDir(foldername='Dataset'):
 
 
 def create_labels(file_map, output_classes):
+    for i, j in file_map.items():
+        print(str(len(j)) + "\n")
     labels = []
     idx = 1
     for i in file_map:
@@ -55,6 +58,7 @@ def create_labels(file_map, output_classes):
             categorical_labels = one_hot(idx, output_classes)
             labels.append(categorical_labels)
         idx = idx + 1
+    print((labels))
     return labels
 
 
